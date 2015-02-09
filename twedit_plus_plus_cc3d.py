@@ -28,10 +28,11 @@ setPaths()
 import sip
 sip.setapi('QVariant', 1)
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtNetwork import *
-from PyQt4.Qsci import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtNetwork import *
+from PyQt5.Qsci import *
 
 
 import sys
@@ -137,7 +138,7 @@ class Twedit(object):
     
     def main(self,argv):
         
-        
+        print 'INSIDE TWEDINT MAIN'
         #global mainWindow
         app = CQApplication(argv)
 

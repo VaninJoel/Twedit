@@ -363,7 +363,7 @@ class EditorWindow(QMainWindow):
         self.createStatusBar()
         
         self.languageManager=LanguageManager(self)
-        print '\n\n\nself.languageManager=',self.languageManager
+#         print '\n\n\nself.languageManager=',self.languageManager
         self.languageManager.createActions()
 
         
@@ -2696,7 +2696,7 @@ class EditorWindow(QMainWindow):
         dbgMsg("THIS IS CURRENT PATH=",currentFilePath)
         fileNames = QtWidgets.QFileDialog.getOpenFileNames(self,"Open new file...",currentFilePath,self.fileDialogFilters)
         fileNames = fileNames[0] 
-        print 'fileNames=',fileNames        
+#         print 'fileNames=',fileNames        
         
         if len(fileNames):                
             #extract path name and add it to settings            
@@ -3136,8 +3136,8 @@ class EditorWindow(QMainWindow):
         _recentMenu.clear()
         recentItems = _settingObj.setting(_settingName)
         
-        print '_settingName=',_settingName
-        print 'recentItems=',recentItems
+#         print '_settingName=',_settingName
+#         print 'recentItems=',recentItems
         
         itemCounter = 1
         for itemName in recentItems:
@@ -3432,6 +3432,9 @@ class EditorWindow(QMainWindow):
         """
             fcn called by constructor - creates menus of the main window
         """        
+#         print 'self.menuBar().isNativeMenuBar()=',self.menuBar().isNativeMenuBar()
+#         self.menuBar().setNativeMenuBar(False)
+
         self.fileMenu = self.menuBar().addMenu("&File")
         self.fileMenu.addAction(am.actionDict["New"])
         self.fileMenu.addAction(am.actionDict["Open..."])
@@ -4359,11 +4362,11 @@ class EditorWindow(QMainWindow):
         except IndexError:
             pass
         # dbgMsg("EXTENSION=",extension)
-        print 'extension=',extension
-        print self.extensionLanguageMap
+#         print 'extension=',extension
+#         print self.extensionLanguageMap
         if extension in self.extensionLanguageMap.keys():
-            print self.languageManager
-            print self.languageManager.languageLexerDictionary
+#             print self.languageManager
+#             print self.languageManager.languageLexerDictionary
             try:
                 return self.languageManager.languageLexerDictionary[self.extensionLanguageMap[extension]]    
             except KeyError:

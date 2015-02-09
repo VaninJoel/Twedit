@@ -104,7 +104,7 @@ class LanguageManager:
         
         self.lDict={"XML":QsciLexerXML()}
         
-        print self.languageLexerDictionary
+#         print self.languageLexerDictionary
         
         
     def importAllAvailableLexers(self): 
@@ -163,8 +163,8 @@ class LanguageManager:
         """
             _languagePropertiesData=["QsciLexerTeX","# ",None,1,5,QsciScintilla.SCWS_INVISIBLE]
         """
-        print '_languageName,_languagePropertiesData=',(_languageName,_languagePropertiesData)
-        print self.lexerObjectDict
+#         print '_languageName,_languagePropertiesData=',(_languageName,_languagePropertiesData)
+#         print self.lexerObjectDict
         try:
             _languagePropertiesData[0]=self.lexerObjectDict[_languagePropertiesData[0]]
 
