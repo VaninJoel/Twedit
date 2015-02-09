@@ -1292,18 +1292,19 @@ class EditorWindow(QMainWindow):
         """
             helper function called during block-commenting of the code to comment single line of code
         """
-
         editor=self.getActiveEditor()
         # dbgMsg("trying to comment current line:",editor.text(currentLine))
         if commentStringEnd: # handling comments which require additions at the beginning and at the end of the line   
-            
-            if not editor.text(currentLine).trimmed().isEmpty(): # checking if the line contains non-white characters
+
+#             if not editor.text(currentLine).trimmed().isEmpty(): # checking if the line contains non-white characters
+            if editor.text(currentLine).rstrip(): # checking if the line contains non-white characters
                 # editor.beginUndoAction()            
                 editor.insertAt( commentStringBegin , currentLine, 0 )  
                 # dbgMsg("currentLineLength=",editor.text(currentLine).size())
                 # dbgMsg("editor.text(currentLine)=",editor.text(currentLine),"|")
                 # we have to account for the fact the EOL character can be CR LF or CR or LF
-                eolPos=editor.text(currentLine).size()
+#                 eolPos= editor.text(currentLine).size()
+                eolPos= len(editor.text(currentLine))
                 lineText=editor.text(currentLine)
                 if lineText[eolPos-2]=="\r" or lineText[eolPos-2]=="\n":# second option is just in case - checking if we are dealign with CR LF or simple CR or LF end of line                    
                     editor.insertAt( commentStringEnd , currentLine, eolPos-2)                        
@@ -1311,8 +1312,11 @@ class EditorWindow(QMainWindow):
                     editor.insertAt( commentStringEnd , currentLine, eolPos-1)
                 # editor.endUndoAction()    
         else:# handling comments which require additions only at the beginning of the line
-            if not editor.text(currentLine).trimmed().isEmpty(): # checking if the line contains non-white characters
-                # editor.beginUndoAction()                            
+#             if not editor.text(currentLine).trimmed().isEmpty(): # checking if the line contains non-white characters
+
+            if editor.text(currentLine).rstrip(): # checking if the line contains non-white characters
+                # editor.beginUndoAction()   
+
                 editor.insertAt( commentStringBegin , currentLine, 0 )                
                 # editor.endUndoAction()    
         
@@ -1403,17 +1407,18 @@ class EditorWindow(QMainWindow):
         if not self.commentStyleDict[editor][0]: # this language does not allow comments 
             return           
             
-        commentStringBegin=QString(self.commentStyleDict[editor][0])
-        commentStringBeginTrunc=commentStringBegin.trimmed() # comments without white spaces
+        commentStringBegin=self.commentStyleDict[editor][0]
+#         commentStringBeginTrunc=commentStringBegin.trimmed() # comments without white spaces
+        commentStringBeginTrunc=commentStringBegin.rstrip() # comments without white spaces
         
         if commentStringBeginTrunc=="REM":
             commentStringBeginTrunc=commentStringBegin # comments which begin with a word  - e.g. REM should not be truncated
         
-        commentStringEnd=QString()
+        commentStringEnd=''
         if self.commentStyleDict[editor][1]:
-            commentStringEnd=QString(self.commentStyleDict[editor][1])
-        commentStringEndTrunc=commentStringEnd.trimmed()
-        
+            commentStringEnd = self.commentStyleDict[editor][1]
+#         commentStringEndTrunc=commentStringEnd.trimmed()
+        commentStringEndTrunc=commentStringEnd.rstrip()        
         
         if editor.hasSelectedText():
             line_from, index_from, line_to, index_to = editor.getSelection()
@@ -1457,43 +1462,58 @@ class EditorWindow(QMainWindow):
         editor=self.getActiveEditor()        
         commentsFound=False
         
-        lineText=editor.text(line)
-        origLineTextLength=lineText.size()
-        indexOf=lineText.indexOf(commentStringBegin)
+        lineText = editor.text(line)
+        origLineTextLength = len(lineText)
+#         indexOf=lineText.indexOf(commentStringBegin)
+        indexOf = lineText.find(commentStringBegin)
+#         match = re.search(commentStringBegin, lineText)        
+#         indexOf=-1
+#         if match:
+#            indexOf = match.start(1) 
         
         beginCommentLength=0
         endCommentLength=0
         
         #processing begining of the line    
         if indexOf != -1:
-            lineText.remove(indexOf,commentStringBegin.size())
-            beginCommentLength=commentStringBegin.size()
+#             lineText.remove(indexOf,len(commentStringBegin))
+            lineText = lineText[:indexOf]+lineText[indexOf+len(commentStringBegin):] 
+#             .remove(indexOf,len(commentStringBegin))
+            
+            beginCommentLength=len(commentStringBegin)
             commentsFound=True
 
         else: 
-            indexOf=lineText.indexOf(commentStringBeginTrunc) 
+#             indexOf=lineText.indexOf(commentStringBeginTrunc) 
+            indexOf = lineText.find(commentStringBeginTrunc)
             if indexOf != -1:
-                lineText.remove(indexOf,commentStringBeginTrunc.size())
-                beginCommentLength=commentStringBeginTrunc.size()
+#                 lineText.remove(indexOf,len(commentStringBeginTrunc))
+                lineText = lineText[:indexOf]+lineText[indexOf+len(commentStringBegin):] 
+                beginCommentLength=len(commentStringBeginTrunc)
                 commentsFound=True
                 
-        if  commentStringEnd.size()  :
+        if  len(commentStringEnd)  :
         
             #processing begining of the line    
-            lastIndexOf=lineText.lastIndexOf(commentStringEnd)
+#             lastIndexOf=lineText.lastIndexOf(commentStringEnd)
+            lastIndexOf=lineText.rfind(commentStringEnd)
             if lastIndexOf!=-1 :
-                lineText.remove(lastIndexOf,commentStringEnd.size())
-                endCommentLength=commentStringEnd.size()
+                
+#                 lineText.remove(lastIndexOf,commentStringEnd.size())
+                lineText = lineText[:lastIndexOf]+lineText[lastIndexOf+len(commentStringEnd):]                 
+                endCommentLength=len(commentStringEnd)
                 commentsFound=True
             else:
-                lastIndexOf=lineText.lastIndexOf(commentStringEndTrunc)
+#                 lastIndexOf=lineText.lastIndexOf(commentStringEndTrunc)
+                lastIndexOf=lineText.rfind(commentStringEndTrunc)
                 if lastIndexOf!=-1 :
-                    lineText.remove(lastIndexOf,commentStringEndTrunc.size())
-                    endCommentLength=commentStringEndTrunc.size()
+#                     lineText.remove(lastIndexOf,commentStringEndTrunc.size())
+                    lineText = lineText[:lastIndexOf]+lineText[lastIndexOf+len(commentStringEndTrunc):]                 
+                    endCommentLength = len(commentStringEndTrunc)
                     commentsFound=True
                     
         if commentsFound:
-            eolPos=lineText.size()            
+            eolPos=len(lineText)            
             if lineText[eolPos-2]=="\r" or lineText[eolPos-2]=="\n":# second option is just in case - checking if we are dealign with CR LF or simple CR or LF end of line                                        
                 editor.setSelection(line,0,line,origLineTextLength-1)
             else:
