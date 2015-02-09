@@ -123,7 +123,7 @@ class CycleTabsPopup(QLabel):
                     highlightTextFlag=True    
                     
             self.setText(labelContent)
-            
+            self.adjustSize()
         
     def keyPressEvent(self, event):
         if event.key()==self.CtrlKeyEquivalent:
