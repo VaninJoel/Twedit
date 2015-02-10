@@ -215,7 +215,7 @@ class EditorWindow(QMainWindow):
             Constructor of main window
         """
         super(EditorWindow, self).__init__()
-        self.setWindowIcon(QtGui.QIcon(":/icons/twedit-icon.png"))
+        self.setWindowIcon(QtGui.QIcon(":/icons/twedit-new-128.png"))
         
         
         self.extensionLanguageMap={".py":"Python",
@@ -271,7 +271,7 @@ class EditorWindow(QMainWindow):
         
         #used to manage color themes for Twedit++- parses xml configuration files written using notepad++ convention
         from ThemeManager import ThemeManager
-        self.themeManager=ThemeManager()
+        self.themeManager=ThemeManager(self)
         self.themeManager.readThemes()
         self.currentThemeName=str(self.configuration.setting("Theme"))
         

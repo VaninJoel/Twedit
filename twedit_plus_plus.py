@@ -65,7 +65,17 @@ class Twedit(object):
     
     def main(self,argv):
         print 'INSIDE MAIN TWEDIT'
-
+#         import AppKit
+#         info = AppKit.NSBundle.mainBundle().infoDictionary()
+#         info ['CFBundleName'] = 'Twedit++my'
+# #         info ['CFBundleIconFile'] = '/Users/m/qt5-demo/Twedit++/icons/twedit-new-128.icns'
+# #         info ['CFBundleIconFile'] = 'twedit-new-128.icns'
+#
+#         info['CFBundleInfoPlistURL'] = "Contents/Info.plist -- file:///Users/m/qt5-demo/Twedit++/";
+#         info ['CFBundleIconFile'] = 'twedit-new-128.icns'
+#         print 'info=',info
+#         info["LSBackgroundOnly"] = "1"
+        
         #global mainWindow
         app = CQApplication(argv)
         
@@ -87,6 +97,9 @@ class Twedit(object):
         self.mainWindow = EditorWindow()
         self.mainWindow.setArgv(argv) # passing command line to the code
 
+#         QApplication.setWindowIcon(QIcon("Twedit++/icons/twedit-new-128.png"))
+#         QApplication.setWindowIcon(QIcon("Twedit++/icons/twedit-new-128.icns"))
+        self.mainWindow.setWindowIcon(QIcon("Twedit++/icons/twedit-new-128.png"))
         self.mainWindow.show()
         
         splash.finish(self.mainWindow)
@@ -116,19 +129,38 @@ class Twedit(object):
 #         self.mainWindow.setFocus(True) # to make sure on OSX window is in the foreground
 #         QTimer.singleShot(60, self.mainWindow, self.mainWindow.createMenus);
 
+#         ret = QMessageBox.warning(self.mainWindow, os.path.dirname(os.path.realpath(dummy_application.__file__)),os.path.dirname(os.path.realpath(dummy_application.__file__)),QMessageBox.Ok)        
         # on some Mac, to ensure that menu bar is activated at startup we need to launch
         # anothr app that steals focus from twedit and immediately close it to return focus to twedit
         # this switch away and switch to operation restores proper Mac style menu bar. This is most likely a bug in PyQt5.4 
         # but untill this is resolved we need to do this "trick"
         if platform.mac_ver()[0] != '':             
-            QTimer.singleShot(60,self.startDummyApp);
+            QTimer.singleShot(0,self.startDummyApp);
+            
+# # #         self.mainWindow.setFocus(True)                    
+# # #         self.mainWindow.raise_() # to make sure on OSX window is in the foreground
 
         app.exec_()
 
     def startDummyApp(self):
 
         import subprocess
-        subprocess.call(['python','dummy_application.py'])        
+
+#         subprocess.call(['python','dummy_application.py'])  
+        try:
+            dummy_application_python_dir = os.path.dirname(os.path.realpath(dummy_application.__file__))
+            dummy_application_binary_path= os.path.join(dummy_application_python_dir,'dummy_application')
+            subprocess.call([dummy_application_binary_path])          
+            return
+        except BaseException,e:
+            print e    
+            
+        try:    
+            subprocess.call(['python','dummy_application.py'])      
+            return
+        except BaseException,e:    
+            print e
+#         subprocess.call(['dummy_application'])          
 
         
 

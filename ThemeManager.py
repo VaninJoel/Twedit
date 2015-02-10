@@ -52,10 +52,13 @@ from PyQt5.QtGui import *
 
 
 class ThemeManager(object):
-    def __init__(self):
+    def __init__(self,ui=None):
+        self.__ui=ui
         self.themeDict={}
         self.tweditRootPath = os.path.dirname(Configuration.__file__)
         self.themeDir=os.path.join(self.tweditRootPath,'themes')
+#         ret = QMessageBox.warning(self.__ui, self.themeDir,self.themeDir,QMessageBox.Ok)
+
         
         # this dictionary translates scintilla lexer language name to the language names used by Notepad++ theme xml files. Usually no translation is necessary but for example c++ has to be translated to cpp to be able to find proper styling
         self.sciltillaLexerToNppTheme={'c++':'cpp','c#':'cs','d':'cpp','fortran77':'fortran','idl':'python','javascript':'cpp','octave':'matlab','pov':'cpp','properties':'props','spice':'vhdl'}

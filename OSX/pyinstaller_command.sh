@@ -1,0 +1,1 @@
+pyinstaller OSX/twedit-pyinstaller.spec --distpath=~/install_projects/Twedit++_binary/dist --workpath=~/install_projects/Twedit++_binary/build
