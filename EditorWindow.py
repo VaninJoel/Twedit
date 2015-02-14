@@ -2651,12 +2651,16 @@ class EditorWindow(QMainWindow):
         action=self.sender()
         dirName=''
         if isinstance(action,QAction):
-            dirName=str(action.data().toString())    
+            dirName=str(action.data())    
            
-        fileNames = QtWidgets.QFileDialog.getOpenFileNames(self,"Open new file...",dirName,self.fileDialogFilters)
+        fileNamesTuple = QtWidgets.QFileDialog.getOpenFileNames(self,"Open new file...",dirName,self.fileDialogFilters)
         self.addItemtoConfigurationStringList(self.configuration,"RecentDirectories",dirName)        
         
-        if fileNames.count():                
+        fileNames=fileNamesTuple[0]
+        if len(fileNames): 
+
+            print type(fileNames)
+            print fileNames
             #extract path name and add it to settings            
             sampleFileName=fileNames[0]
             dirName=os.path.abspath(os.path.dirname(str(sampleFileName)))
@@ -3143,12 +3147,15 @@ class EditorWindow(QMainWindow):
         
         itemCounter = 1
         for itemName in recentItems:
-            actionText = self.tr("&%1 %2").arg(itemCounter).arg(itemName)
+#             actionText = self.tr("&%1 %2").arg(itemCounter).arg(itemName)
+            actionText = self.tr("&%1 %2").format(itemCounter, itemName)
+
             
             action = QAction("&%d %s " % (itemCounter,itemName) , menuOwnerObj)
             _recentMenu.addAction(action)
             action.setData(QVariant(itemName))
-            menuOwnerObj.connect(action,SIGNAL("triggered()"),_recentItemSlot)
+#             menuOwnerObj.connect(action,SIGNAL("triggered()"),_recentItemSlot)
+            action.triggered.connect(_recentItemSlot)
             # action.setData(QVariant(simulationFileName))
             itemCounter+=1
     
@@ -4029,7 +4036,8 @@ class EditorWindow(QMainWindow):
         action=self.sender()
         fileName=''
         if isinstance(action,QAction):
-            fileName=str(action.data().toString())    
+#             fileName=str(action.data().toString())    
+            fileName=str(action.data())    
             self.loadFile(fileName)
         
     def loadFiles(self, fileNames):
