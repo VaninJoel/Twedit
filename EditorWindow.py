@@ -1,6 +1,7 @@
 """
 TO DO:
 * cannot find  new line character 
+* comment removal removes one character too much when comment does not have space after comment mark 
 * window menu
 * help menu
 * expand guessLexer function to include more languages
@@ -2859,11 +2860,12 @@ class EditorWindow(QMainWindow):
         editor=self.getActiveEditor()
         editor.foldAll(True) 
         
-
+    @pyqtSlot(bool)
     def wrapLines(self,_flag):        
         """
             slot - wraps/unwraps (_depending on _flag) lines in the active editor  - updates View Menu
         """
+
         editor=self.getActiveEditor()
         if not editor:
             return
@@ -2871,25 +2873,25 @@ class EditorWindow(QMainWindow):
         if not _flag:
             editor.setWrapMode(QsciScintilla.WrapNone)        
         else:
-            if sys.platform.startswith('darwin'):
-                if not self.configuration.setting("DontShowWrapLinesWarning"):   
-                    msgBox=QMessageBox(QMessageBox.Warning,"Wrap Lines Warning","<b>Wrap Line operation on OS X may take a long time<\b>")
-                    dontAskCheckBox=QCheckBox("Do not display this warning again",msgBox)
-                    dontAskCheckBox.blockSignals(True)
-                    msgBox.addButton(dontAskCheckBox,QMessageBox.ActionRole)
-                    # msgBox.setTitle("Wrap Lines Warning")
+#             if sys.platform.startswith('darwin'):
+#                 if not self.configuration.setting("DontShowWrapLinesWarning"):   
+#                     msgBox=QMessageBox(QMessageBox.Warning,"Wrap Lines Warning","<b>Wrap Line operation on OS X may take a long time<\b>")
+#                     dontAskCheckBox=QCheckBox("Do not display this warning again",msgBox)
+#                     dontAskCheckBox.blockSignals(True)
+#                     msgBox.addButton(dontAskCheckBox,QMessageBox.ActionRole)
+#                     # msgBox.setTitle("Wrap Lines Warning")
                     
-                    # msgBox.setText("<b>Wrap Line operation on OS X may take a long time<\b>");
-                    msgBox.setInformativeText("Proceed?")
-                    msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
-                    msgBox.setDefaultButton(QMessageBox.No)
-                    ret = msgBox.exec_()
+#                     # msgBox.setText("<b>Wrap Line operation on OS X may take a long time<\b>");
+#                     msgBox.setInformativeText("Proceed?")
+#                     msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
+#                     msgBox.setDefaultButton(QMessageBox.No)
+#                     ret = msgBox.exec_()
                     
-                    if ret==QMessageBox.Yes :
-                        self.configuration.setSetting("DontShowWrapLinesWarning",dontAskCheckBox.isChecked())
-                    else:    
-                        self.configuration.setSetting("DontShowWrapLinesWarning",dontAskCheckBox.isChecked())
-                        return
+#                     if ret==QMessageBox.Yes :
+#                         self.configuration.setSetting("DontShowWrapLinesWarning",dontAskCheckBox.isChecked())
+#                     else:    
+#                         self.configuration.setSetting("DontShowWrapLinesWarning",dontAskCheckBox.isChecked())
+#                         return
 
             editor.setWrapMode(QsciScintilla.WrapWord)
 
@@ -3243,7 +3245,7 @@ class EditorWindow(QMainWindow):
         am.addAction(self.wrapLinesAct)
         
 #         self.connect(self.wrapLinesAct,    SIGNAL('triggered(bool)'),  self.wrapLines)
-        self.wrapLinesAct.triggered.connect(self.wrapLines)
+        self.wrapLinesAct.triggered[bool].connect(self.wrapLines)
         
         self.showWhitespacesAct = QtWidgets.QAction("Show Whitespaces", self, statusTip="Show whitespaces in a current document")  
         self.showWhitespacesAct.setCheckable(True)

@@ -32,6 +32,7 @@ import fnmatch
 import glob
 import getpass
 
+from Messaging import stdMsg, dbgMsg, errMsg, setDebugging
 
 def __showwarning(message, category, filename, lineno, file=None, line=""):
     """
@@ -407,61 +408,147 @@ def writeEncodedFile(filename, text, orig_coding):
     
     return encoding
 
+def writeBOM(_fh,_encoding=None):
+    # dealing with big endian/little endian BOM
+    if not _encoding:
+        return
+    if _encoding=="utf-16be":
+        _fh.write(u'\ufeff')
+        dbgMsg("WRITING utf-16be BOM *********************************************")
+    elif _encoding=="utf-16le":
+        _fh.write(u'\ufffe')        
+    elif _encoding=="utf-32be":
+        _fh.write(u'\u0000\ufeff')
+    elif _encoding=="utf-32le":
+        _fh.write(u'\ufffe\u0000')
+    # elif _encoding=="utf-8-bom":
+        # _fh.write(u'\uefbb\ubf00')
+        
+    else:
+        return
+
 
 def encode(text, orig_coding):
     """
-    Function to encode text into a byte text.
+    Function to encode a text.
     
-    @param text text to be encoded (string)
-    @param orig_coding type of the original encoding (string)
-    @return tuple of encoded text and encoding used (bytes, string)
-    @exception CodingError raised to indicate an invalid encoding
+    @param text text to encode (string)
+    @param orig_coding type of the original coding (string)
+    @return encoded text and encoding
     """
-    encoding = None
     if orig_coding == 'utf-8-bom':
-        etext, encoding = BOM_UTF8 + text.encode("utf-8"), 'utf-8-bom'
-    else:
-        # Try declared coding spec
-        coding = get_coding(text)
-        if coding:
-            try:
-                etext, encoding = text.encode(coding), coding
-            except (UnicodeError, LookupError):
-                # Error: Declared encoding is incorrect
-                raise CodingError(coding)
-        else:
-            if orig_coding and orig_coding.endswith(
-                    ('-selected', '-default', '-guessed', '-ignore')):
-                coding = orig_coding\
-                    .replace("-selected", "")\
-                    .replace("-default", "")\
-                    .replace("-guessed", "")\
-                    .replace("-ignore", "")
-                try:
-                    etext, encoding = text.encode(coding), coding
-                except (UnicodeError, LookupError):
-                    pass
-            
-            if encoding is None:
-                # Try configured default
-                try:
-                    codec = Preferences.getEditor("DefaultEncoding")
-                    etext, encoding = text.encode(codec), codec
-                except (UnicodeError, LookupError):
-                    pass
-                
-                if encoding is None:
-                    # Try saving as ASCII
-                    try:
-                        etext, encoding = text.encode('ascii'), 'ascii'
-                    except UnicodeError:
-                        pass
-                    
-                    if encoding is None:
-                        # Save as UTF-8 without BOM
-                        etext, encoding = text.encode('utf-8'), 'utf-8'
+        # return BOM_UTF8 + text.encode("utf-8"), 'utf-8-bom'
+        return unicode(text),orig_coding
+    dbgMsg("ENCODING is ",orig_coding," *********************************************")
     
-    return etext, encoding
+    # use orig_coding without any modifications
+    try:
+        # return text.encode(orig_coding), orig_coding
+        # since I am using codec.open() I dont have to encode text it is enough if I converti it to unicode
+        return unicode(text),orig_coding
+    except (UnicodeError, LookupError):
+        pass
+        
+    # if it does not work then    
+    # try declared coding spec
+    coding = get_coding(text)
+    if coding:
+        try:
+            return text.encode(coding), coding
+        except (UnicodeError, LookupError):
+            # Error: Declared encoding is incorrect
+            raise CodingError(coding)
+    
+    if orig_coding and orig_coding.endswith('-selected'):
+        coding = orig_coding.replace("-selected", "")
+        try:
+            return text.encode(coding), coding
+        except (UnicodeError, LookupError):
+            pass
+    if orig_coding and orig_coding.endswith('-default'):
+        coding = orig_coding.replace("-default", "")
+        try:
+            return text.encode(coding), coding
+        except (UnicodeError, LookupError):
+            pass
+    if orig_coding and orig_coding.endswith('-guessed'):
+        coding = orig_coding.replace("-guessed", "")
+        try:
+            return text.encode(coding), coding
+        except (UnicodeError, LookupError):
+            pass
+    
+    # Try configured default
+    try:
+        codec = unicode(default_coding)
+        return text.encode(codec), codec
+    except (UnicodeError, LookupError):
+        pass
+    
+    # Try saving as ASCII
+    try:
+        return text.encode('ascii'), 'ascii'
+    except UnicodeError:
+        pass
+    
+    # Save as UTF-8 without BOM
+    return text.encode('utf-8'), 'utf-8'
+
+
+# # # def encode(text, orig_coding):
+# # #     """
+# # #     Function to encode text into a byte text.
+    
+# # #     @param text text to be encoded (string)
+# # #     @param orig_coding type of the original encoding (string)
+# # #     @return tuple of encoded text and encoding used (bytes, string)
+# # #     @exception CodingError raised to indicate an invalid encoding
+# # #     """
+# # #     encoding = None
+# # #     if orig_coding == 'utf-8-bom':
+# # #         etext, encoding = BOM_UTF8 + text.encode("utf-8"), 'utf-8-bom'
+# # #     else:
+# # #         # Try declared coding spec
+# # #         coding = get_coding(text)
+# # #         if coding:
+# # #             try:
+# # #                 etext, encoding = text.encode(coding), coding
+# # #             except (UnicodeError, LookupError):
+# # #                 # Error: Declared encoding is incorrect
+# # #                 raise CodingError(coding)
+# # #         else:
+# # #             if orig_coding and orig_coding.endswith(
+# # #                     ('-selected', '-default', '-guessed', '-ignore')):
+# # #                 coding = orig_coding\
+# # #                     .replace("-selected", "")\
+# # #                     .replace("-default", "")\
+# # #                     .replace("-guessed", "")\
+# # #                     .replace("-ignore", "")
+# # #                 try:
+# # #                     etext, encoding = text.encode(coding), coding
+# # #                 except (UnicodeError, LookupError):
+# # #                     pass
+            
+# # #             if encoding is None:
+# # #                 # Try configured default
+# # #                 try:
+# # #                     codec = Preferences.getEditor("DefaultEncoding")
+# # #                     etext, encoding = text.encode(codec), codec
+# # #                 except (UnicodeError, LookupError):
+# # #                     pass
+                
+# # #                 if encoding is None:
+# # #                     # Try saving as ASCII
+# # #                     try:
+# # #                         etext, encoding = text.encode('ascii'), 'ascii'
+# # #                     except UnicodeError:
+# # #                         pass
+                    
+# # #                     if encoding is None:
+# # #                         # Save as UTF-8 without BOM
+# # #                         etext, encoding = text.encode('utf-8'), 'utf-8'
+    
+# # #     return etext, encoding
 
 
 def decodeString(text):

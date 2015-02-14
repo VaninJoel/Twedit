@@ -36,7 +36,8 @@ class KeyShortcutDlg(QDialog,ui_KeyShortcut.Ui_KeyShortcutDlg):
         self.keySequence=QKeySequence()
         self.nonShiftModifierPreseed=False
         
-        self.connect(self.grabButton,SIGNAL("clicked()"), self.startRecording)
+#         self.connect(self.grabButton,SIGNAL("clicked()"), self.startRecording)
+        self.grabButton.clicked.connect(self.startRecording)
         self.setInitialShortcutText(_initialText)
         self.setTitle(_title)
         
@@ -53,7 +54,8 @@ class KeyShortcutDlg(QDialog,ui_KeyShortcut.Ui_KeyShortcutDlg):
         
     def updateShortcutDisplay(self):
         # s=self.keySequence.toString(QKeySequence.NativeText)
-        s=QString()
+#         s=QString()
+        s=''
         dbgMsg("key=",self.key)
         dbgMsg("shiftPeessed=%x"%(Qt.SHIFT & self.key))
         dbgMsg("Qt.SHIFT = %x"%(Qt.SHIFT & ~Qt.SHIFT))
@@ -64,19 +66,22 @@ class KeyShortcutDlg(QDialog,ui_KeyShortcut.Ui_KeyShortcutDlg):
 
                 
             if self.modifiers & (Qt.CTRL):
-                s.append("Ctrl+")
-                
+#                 s.append("Ctrl+")
+                s += "Ctrl+"                
             if self.modifiers & (Qt.SHIFT):
-                s.append("Shift+")                
-                
+#                 s.append("Shift+")                
+                s += "Shift+"                                
             if self.modifiers & (Qt.ALT):
-                s.append("Alt+")
+#                 s.append("Alt+")
+                s += "Alt+"
                 
             if self.modifiers & (Qt.META):
-                s.append("Meta+")
+#                 s.append("Meta+")
+                s += "Meta+"
             # pressing non modifier key ends recording    
             if self.key !=  Qt.Key_Shift and self.key !=  Qt.Key_Control and self.key !=  Qt.Key_Alt and self.key !=  Qt.Key_Meta:        
-                dbgMsg("REGULAR KEY=",QChar(self.key).toAscii())
+#                 dbgMsg("REGULAR KEY=",QChar(self.key).toAscii())
+                dbgMsg("REGULAR KEY=",self.key)
                 self.doneRecording()
                 
         if not self.sequence:   
