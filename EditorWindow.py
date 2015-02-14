@@ -147,14 +147,22 @@ class CustomTabBar(QTabBar):
     def __init__(self , _parent=None):
         QTabBar.__init__(self , _parent)
         self.tabWidget=_parent
-        self.setStyleSheet("QTabBar::tab { height: 20px;}");
+        self.setStyleSheet("QTabBar::tab { height: 20px;}")
+        self.clickedTabPosition = -1
         
     def mousePressEvent(self,event):        
         self.clickedTabPosition= self.tabWidget.tabBar().tabAt(event.pos())
         self.tabWidget.widget(self.clickedTabPosition).setFocus(Qt.MouseFocusReason)
         super(self.__class__,self).mousePressEvent(event)
         
-        
+    def contextMenuEvent(self , event):
+        # print type(event)
+        # print 'event.pos()=',event.pos()
+        # print 'self.tabBar().tabAt(event.pos())=',self.tabAt(event.pos())
+        #
+        # print 'TABBAR CONTEXT MENU self.clickedTabPosition=',self.clickedTabPosition
+        self.tabWidget.contextMenuEvent(event)
+
         
 class CustomTabWidget(QTabWidget):
     """
@@ -169,15 +177,14 @@ class CustomTabWidget(QTabWidget):
         self.tabBarLocal=CustomTabBar(self)
         self.setTabBar(self.tabBarLocal)
         
-        
+
         
     def contextMenuEvent(self , event):    
         """
             contextMenuEvent handles right clicks on the editor tabs
         """
-        
-        self.clickedTabPosition=self.tabBar().tabAt(event.pos())
-        
+
+        self.clickedTabPosition = self.tabBarLocal.clickedTabPosition
         self.setCurrentWidget(self.widget(self.clickedTabPosition))
         self.editorWindow.clickedTabWidget=self
         self.editorWindow.activeTabWidget=self
@@ -200,11 +207,11 @@ class CustomTabWidget(QTabWidget):
         menu.addSeparator()        
         #--------------------------- 
         menu.addAction(am.actionDict["Move To Other View"])
-        
-        
-        self.connect(fnToClipAct,SIGNAL("triggered()"),self.editorWindow.fileNameToClipboard)
-        self.connect(fdToClipAct,SIGNAL("triggered()"),self.editorWindow.fileDirToClipboard)
-                
+
+        fnToClipAct.triggered.connect(self.editorWindow.fileNameToClipboard)
+        fdToClipAct.triggered.connect(self.editorWindow.fileDirToClipboard)
+
+
         menu.exec_(event.globalPos())
         
   
@@ -1160,10 +1167,14 @@ class EditorWindow(QMainWindow):
     def setEditorProperties(self,_editor):
         """
             for each newly created editor this fcn sets all editor properties based on twedit configuration e.g. font size, display of EOL etc 
-        """        # this is essential on OSX otherwise after changing lexer line number font changes        _editor.setMarginsFont(self.baseFont) # we first set font for margin                 
+        """
+        # this is essential on OSX otherwise after changing lexer line number font changes
+        _editor.setMarginsFont(self.baseFont) # we first set font for margin         
+        
         #lines are displayed on margin 0
         lineNumbersFlag=self.configuration.setting("DisplayLineNumbers")
-#         self.adjustLineNumbers(_editor,lineNumbersFlag,False) # we do not need to call it - line number adjuster is called automatically in QsciScintillaCustom.py - self.linesChanged.connect(self.linesChangedHandler)        
+#         self.adjustLineNumbers(_editor,lineNumbersFlag,False) # we do not need to call it - line number adjuster is called automatically in QsciScintillaCustom.py - self.linesChanged.connect(self.linesChangedHandler)
+        
         useTabSpaces=self.configuration.setting("UseTabSpaces")
         
         
@@ -1182,9 +1193,13 @@ class EditorWindow(QMainWindow):
         # dbgMsg("MASK 1=",_editor.marginMarkerMask(1))
         # dbgMsg("MASK 2=",_editor.marginMarkerMask(2))
         #enable bookmarking by click
-        _editor.setMarginSensitivity(1,True)        try:            
+        _editor.setMarginSensitivity(1,True)
+        try:            
             _editor.marginClicked.disconnect(self.marginClickedHandler)
-        except: # when margin clicked is disconnected call to disconnect throws exception              pass            _editor.marginClicked.connect(self.marginClickedHandler)        
+        except: # when margin clicked is disconnected call to disconnect throws exception  
+            pass    
+        _editor.marginClicked.connect(self.marginClickedHandler)
+        
         _editor.setMarkerBackgroundColor(QColor("lightsteelblue"), self.lineBookmark)
         if self.configuration.setting("FoldText"):
             _editor.setFolding(QsciScintilla.BoxedTreeFoldStyle)
@@ -1192,8 +1207,13 @@ class EditorWindow(QMainWindow):
             _editor.setFolding(QsciScintilla.NoFoldStyle)
         _editor.setCaretLineVisible(True)
         _editor.setCaretLineBackgroundColor(QtGui.QColor('#EFEFFB'))        
-        # _editor.modificationChanged.connect(self.modificationChangedSlot)        
-        if not sys.platform.startswith('win'):            _editor.setEolMode(QsciScintilla.EolUnix)        else:            _editor.setEolMode(QsciScintilla.EolWindows) # windows eol only on system whose name starts with 'win'            
+        # _editor.modificationChanged.connect(self.modificationChangedSlot)
+        
+        if not sys.platform.startswith('win'):
+            _editor.setEolMode(QsciScintilla.EolUnix)
+        else:
+            _editor.setEolMode(QsciScintilla.EolWindows) # windows eol only on system whose name starts with 'win'
+            
         # _editor.setEolMode(QsciScintilla.EolWindows) # SETTING EOL TO WINDOWS MESSES THINGS UP AS SAVE FCN (MOST LIKELY)ADS EXTRA CR SIGNS - 
         # _editor.setEolMode(QsciScintilla.EolUnix) # SETTING EOL TO WINDOWS MESSES THINGS UP AS SAVE FCN (MOST LIKELY)ADS EXTRA CR SIGNS - 
         # _editor.setEolMode(QsciScintilla.EolMac) # SETTING EOL TO WINDOWS MESSES THINGS UP AS SAVE FCN (MOST LIKELY)ADS EXTRA CR SIGNS - 
@@ -1530,7 +1550,12 @@ class EditorWindow(QMainWindow):
         """
             shows find/replace dialog popup
         """
-        if self.findDialogForm:            # this should deal with OSX issues                 self.findDialogForm.show()            self.findDialogForm.raise_()            self.findDialogForm.setFocus()            self.findDialogForm.activateWindow()            
+        if self.findDialogForm:
+            # this should deal with OSX issues     
+            self.findDialogForm.show()
+            self.findDialogForm.raise_()
+            self.findDialogForm.setFocus()
+            self.findDialogForm.activateWindow()            
 #             self.findDialogForm.show()
             return
             
@@ -2057,7 +2082,8 @@ class EditorWindow(QMainWindow):
             this slot does not work as advertised in QScintilla documentation - not used
         """
         editor=self.getActiveEditor() 
-        findText=QString(self.findAndReplaceHistory.textToFind) # a new copy of a textTo Find
+        # findText=QString(self.findAndReplaceHistory.textToFind) # a new copy of a textTo Find
+        findText = self.findAndReplaceHistory.textToFind # a new copy of a textTo Find
         if self.findAndReplaceHistory.re:
             #here I will replace ( with \( and vice versa - to be consistent with  regex convention                   
             findText=self.swapEscaping(findText,"(")
@@ -2565,7 +2591,8 @@ class EditorWindow(QMainWindow):
         # print 'setting line margin ',_flag
         _editor.setMarginLineNumbers(0, _flag)
         _editor.linesChangedHandler()
-        
+    
+    
         
         
     def configureEnableAutocompletion(self,_flag):
@@ -2877,6 +2904,7 @@ class EditorWindow(QMainWindow):
         if not _flag:
             editor.setWrapMode(QsciScintilla.WrapNone)        
         else:
+            # with new scintilla and pyqt5 there si no need to check word wrap on OSX it works fast
 #             if sys.platform.startswith('darwin'):
 #                 if not self.configuration.setting("DontShowWrapLinesWarning"):   
 #                     msgBox=QMessageBox(QMessageBox.Warning,"Wrap Lines Warning","<b>Wrap Line operation on OS X may take a long time<\b>")
@@ -3058,7 +3086,8 @@ class EditorWindow(QMainWindow):
                 lexer=self.guessLexer(fileName)
                 if lexer[0]:
                     activePanel.currentWidget().setLexer(lexer[0])             
-                    activePanel.currentWidget().setBraceMatching(lexer[3])                     	
+                    activePanel.currentWidget().setBraceMatching(lexer[3])
+                     	
                 else:# lexer could not be guessed - use default lexer
                     activePanel.currentWidget().setLexer(None)
                     
@@ -3067,8 +3096,10 @@ class EditorWindow(QMainWindow):
                 activePanel.setTabText(tabIndex,self.strippedName(fileName))
                 self.commentStyleDict[activePanel.currentWidget()]=[lexer[1],lexer[2]] # associating comment style with the lexer
                 currentEncoding=self.getEditorFileEncoding(activePanel.currentWidget())
-                self.setPropertiesInEditorList(activePanel.currentWidget(),fileName,os.path.getmtime(str(fileName)),currentEncoding)                
-                self.setEditorProperties(activePanel.currentWidget())
+                self.setPropertiesInEditorList(activePanel.currentWidget(),fileName,os.path.getmtime(str(fileName)),currentEncoding)
+                
+                self.setEditorProperties(activePanel.currentWidget())
+
             #before returning we check if du to saveAs some documents have been modified
             self.checkIfDocumentsWereModified()    
             return returnCode
@@ -3778,7 +3809,7 @@ class EditorWindow(QMainWindow):
             slot - moves one document from one panel to another
         """
         editor=self.clickedTabWidget.widget(self.clickedTabWidget.clickedTabPosition)
-        
+
         tabIcon=self.clickedTabWidget.tabIcon(self.clickedTabWidget.indexOf(editor))
         tabText=self.clickedTabWidget.tabText(self.clickedTabWidget.indexOf(editor))
         
@@ -3795,9 +3826,7 @@ class EditorWindow(QMainWindow):
         
         # if sourceTabWidget==self.panels[0] and sourceTabWidget.count()==1 and targetTabWidget.count()==0:
             # return
-            
-            
-        
+
         editor.panel=targetTabWidget # focusIn event will be called right after remove Tab so before that hapens we need to change tabAssignments in editor widgets
         sourceTabWidget.removeTab( sourceTabWidget.indexOf(editor))
         if targetTabWidget.isHidden():
@@ -4253,7 +4282,8 @@ class EditorWindow(QMainWindow):
             textEditLocal.setText(txt)
             
             if lexer[0]:
-                textEditLocal.setLexer(lexer[0])                    activeTab.currentWidget().setBraceMatching(lexer[3])
+                textEditLocal.setLexer(lexer[0])    
+                activeTab.currentWidget().setBraceMatching(lexer[3])
 
             
         self.setEditorProperties(textEditLocal)                
@@ -4296,7 +4326,8 @@ class EditorWindow(QMainWindow):
         self.updateEncodingLabel()        
         dbgMsg(" SETTING fileName=",fileName," os.path.getmtime(fileName)=",os.path.getmtime(str(fileName)))
         self.statusBar().showMessage("File loaded", 2000)
-                
+        
+        
         # self.addItemtoConfigurationStringList("RecentDocuments",fileName)
         
         
