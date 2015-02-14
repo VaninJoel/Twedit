@@ -26,6 +26,16 @@ ALL_IN_ALL_OPEN_DOCS=1
 ALL_IN_CURRENT_DOC=2
 
 MAC = "qt_mac_set_native_menubar" in dir()
+
+
+def remove_list_duplicates(l):
+    """
+
+    :param l: list
+    :return:  list with removed duplicate elements
+    """
+    return list(set(l))
+
 class FindInFilesResults:
     def __init__(self,_fileName="",_textToFind="",_unsavedFile=False):
         self.fileName=_fileName
@@ -169,7 +179,7 @@ class FindAndReplaceHistory:
 #             self.findHistory.removeDuplicates()
 
             self.findHistory.insert(0,self.textToFindIF)
-            self.findHistory = list(set(self.findHistory))# removing dupicates
+            self.findHistory = remove_list_duplicates(self.findHistory)
             if len(self.findHistory)>=self.historyLength:
 #                 self.findHistory.removeAt(self.findHistory.count() - 1)
                 self.findHistory.pop()# removing last element that is over the limit
@@ -179,14 +189,11 @@ class FindAndReplaceHistory:
             
         if self.filtersIF!=_filters:
             self.filtersIF = _filters
-            if str(self.filtersIF).strip()!='':
-                self.filtersHistoryIF.prepend(self.filtersIF)
+            if self.filtersIF.strip()!='':
+                self.filtersHistoryIF.insert(0,self.filtersIF)
             print 'self.filtersHistoryIF=',len(self.filtersHistoryIF)
-            
-#             self.filtersHistoryIF.removeDuplicates()
-            self.filtersHistoryIF = list(set(self.filtersHistoryIF))# removing dupicates
-            print 'REMOVING DUPLICATES'
-            print 'self.filtersHistoryIF=',len(self.filtersHistoryIF)
+
+            self.filtersHistoryIF = remove_list_duplicates(self.filtersHistoryIF)
             for obj in self.filtersHistoryIF:
                 print 'filter=',obj
             if len(self.filtersHistoryIF)>=self.historyLength:
@@ -200,14 +207,13 @@ class FindAndReplaceHistory:
         if self.directoryIF!=_directory:
             self.directoryIF = _directory    
             if str(self.directoryIF).strip()!='':    
-#                 self.directoryHistoryIF.prepend(self.directoryIF)
+
                 self.directoryHistoryIF.insert(0,self.directoryIF)
-#             self.directoryHistoryIF.removeDuplicates()
-            self.directoryHistoryIF = list(set(self.directoryHistoryIF))# removing dupicates
+
+
+            self.directoryHistoryIF = remove_list_duplicates( self.directoryHistoryIF )
             if len(self.directoryHistoryIF)>=self.historyLength:
-#                 self.directoryHistoryIF.removeAt(self.directoryHistoryIF.count() - 1)
                 self.directoryHistoryIF.pop() # removing last element that is over the limit
-                # self.directoryHistoryIF.removeLast()
             flag=True
             # dbgMsg(self.findHistory)
         # for in files operations we always do search regardless if parameters change or not
@@ -222,30 +228,29 @@ class FindAndReplaceHistory:
         if self.replaceText!=_replaceText:
             self.replaceText=_replaceText
             # # # if str(self.replaceText).strip()!='':
-            self.replaceHistory.prepend(self.replaceText)
-            self.replaceHistory.removeDuplicates()
-            if self.replaceHistory.count()>=self.historyLength:
-                self.replaceHistory.removeAt(self.replaceHistory.count() - 1)
-                # self.replaceHistory.removeLast()
-                
+            self.replaceHistory.insert(0,self.replaceText)
+            self.replaceHistory = remove_list_duplicates(self.replaceHistory)
+
+            if len(self.replaceHistory)>=self.historyLength:
+                self.replaceHistory.pop()
+
             # dbgMsg(self.findHistory)
             flag=True
 
         return flag    
         
     def newReplaceParametersIF(self,_text,_replaceText,_filters,_directory):
-        flag=self.newSearchParametersIF(_text,_filters,_directory)
+        flag = self.newSearchParametersIF(_text,_filters,_directory)
         
         if self.replaceTextIF!=_replaceText:
             self.replaceTextIF=_replaceText
-            # # # if str(self.replaceTextIF).strip()!='':
-            self.replaceHistory.prepend(self.replaceTextIF)
-            self.replaceHistory.removeDuplicates()
-            if self.replaceHistory.count()>=self.historyLength:
-                self.replaceHistory.removeAt(self.replaceHistory.count() - 1)
-                # self.replaceHistory.removeLast()
-                
-            # dbgMsg(self.findHistory)
+
+            self.replaceHistory.insert(0,self.replaceTextIF)
+            self.replaceHistory = remove_list_duplicates(self.replaceHistory)
+
+
+            if len(self.replaceHistory)>=self.historyLength:
+                self.replaceHistory.pop()
             flag=True
 
         return flag  
@@ -461,7 +466,19 @@ class FindAndReplaceDlg(QDialog,ui_findinfilesdlg.Ui_FindInFiles):
         if MAC:           
             self.setWindowFlags(Qt.Tool|self.windowFlags())
         
-    def setButtonsEnabled(self,_flag):        # setEnabled on top widget blocks Qline edit keyboard focus on OSX . So instead we will enable each button individually        # notice we do not touch close or clear history buttons        self.findNextButton.setEnabled(_flag)        self.findAllInOpenDocsButton.setEnabled(_flag)        self.findAllInCurrentDocButton.setEnabled(_flag)        self.replaceButton.setEnabled(_flag)        self.replaceAllButton.setEnabled(_flag)        self.replaceAllInOpenDocsButton.setEnabled(_flag)        self.findAllButtonIF.setEnabled(_flag)        self.replaceButtonIF.setEnabled(_flag)            def tabChanged(self,idx):
+    def setButtonsEnabled(self,_flag):
+        # setEnabled on top widget blocks Qline edit keyboard focus on OSX . So instead we will enable each button individually
+        # notice we do not touch close or clear history buttons
+        self.findNextButton.setEnabled(_flag)
+        self.findAllInOpenDocsButton.setEnabled(_flag)
+        self.findAllInCurrentDocButton.setEnabled(_flag)
+        self.replaceButton.setEnabled(_flag)
+        self.replaceAllButton.setEnabled(_flag)
+        self.replaceAllInOpenDocsButton.setEnabled(_flag)
+        self.findAllButtonIF.setEnabled(_flag)
+        self.replaceButtonIF.setEnabled(_flag)
+        
+    def tabChanged(self,idx):
         title=self.tabWidget.tabText(idx)
         dbgMsg("TITLE=",title)
         self.setWindowTitle(title)
@@ -657,27 +674,27 @@ class FindAndReplaceDlg(QDialog,ui_findinfilesdlg.Ui_FindInFiles):
     def on_findCPB_clicked(self):
         # dbgMsg("this is on findNext button clicked"  )
          
-        self.findAndReaplceHistory.findHistory.clear()
+        self.findAndReaplceHistory.findHistory=[]
         self.findComboBox.clear()
         self.findComboBoxIF.clear()
         
     @pyqtSlot()
     def on_replaceCPB_clicked(self):
         dbgMsg("CLEAR REAPLCE HISTORY button clicked"        )
-        self.findAndReaplceHistory.replaceHistory.clear()
+        self.findAndReaplceHistory.replaceHistory = []
         self.replaceComboBox.clear()
         self.replaceComboBoxIF.clear()
         
     @pyqtSlot()      
     def on_filtersCPB_clicked(self):
         # dbgMsg("this is on findNext button clicked"        )
-        self.findAndReaplceHistory.filtersHistoryIF.clear()
+        self.findAndReaplceHistory.filtersHistoryIF = []
         self.filtersComboBoxIF.clear()
         
     @pyqtSlot()              
     def on_directoryCPB_clicked(self):
         # dbgMsg("this is on findNext button clicked"        )
-        self.findAndReaplceHistory.directoryHistoryIF.clear()
+        self.findAndReaplceHistory.directoryHistoryIF = []
         self.directoryComboBoxIF.clear()
         
     @pyqtSlot()

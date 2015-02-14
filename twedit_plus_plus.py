@@ -189,7 +189,7 @@ if __name__ == '__main__':
             
         sys.exit()    
 
-    
+    print 'GOT HERE'
     twedit.main(sys.argv[1:])
     
     
